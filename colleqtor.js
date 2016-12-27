@@ -3,13 +3,13 @@ const fs = require('fs');
 const jawn = require('node-jawn');
 const _ = require('underscore');
 
-let collector = {
-  listFiles (dir, ext) {
-    let all = _.map(fs.readdirSync(dir), (item) => dir + '/' + item);
-    return _.filter(all, (item) => jawn.getFileExtension(item) === ext.toLowerCase());
+let colleqtor = {
+  listFiles (dir, ext = null, strip = false) {
+    let all = _.map(fs.readdirSync(dir), (item) => (strip ? '' : dir + '/') + item);
+    return !ext ? all : _.filter(all, (item) => jawn.getFileExtension(item) === ext.toLowerCase());
   },
-  gatherFileNames (dir, ext) {
-    return _.map(collector.listFiles(dir, ext), jawn.removeFileExtension);
+  gatherFileNames (dir, ext = null, strip = false) {
+    return _.map(colleqtor.listFiles(dir, ext, true), jawn.removeFileExtension);
   },
   getFileContent (list, objMode = true, useBasename = true, baseDir = '') {
     let contents = (objMode ? {} : []);
@@ -22,8 +22,8 @@ let collector = {
     return contents;
   },
   collect (directory, extension, objMode) {
-    return collector.getFileContent(collector.listFiles(directory, extension), objMode);
+    return colleqtor.getFileContent(colleqtor.listFiles(directory, extension), objMode);
   }
 };
 
-module.exports = collector;
+module.exports = colleqtor;

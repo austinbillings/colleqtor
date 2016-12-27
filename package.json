@@ -1,7 +1,7 @@
 {
   "name": "colleqtor",
   "version": "1.0.0",
-  "description": "Sieze the directory.",
+  "description": "Seize the directory.",
   "main": "colleqtor.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -27,7 +27,10 @@
   },
   "homepage": "https://github.com/austinbillings/colleqtor#readme",
   "dependencies": {
-    "node-jawn": "^1.2.0",
+    "node-jawn": "^1.2.1",
     "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    "zaq": "^1.0.3"
   }
 }

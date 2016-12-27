@@ -10,7 +10,6 @@ let colleqtor = {
     return !ext ? all : _.filter(all, (item) => jawn.getFileExtension(item) === ext.toLowerCase());
   },
   gatherFileNames (dir, ext = null, strip = false) {
-    zaq.info(dir + ' gathering ' + ext + ' strip is '+(strip?'y':'n'));
     return _.map(colleqtor.listFiles(dir, ext, strip), jawn.removeFileExtension);
   },
   getFileContent (list, objMode = true, useBasename = true, baseDir = '') {

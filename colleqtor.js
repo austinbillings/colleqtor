@@ -2,6 +2,7 @@
 const fs = require('fs');
 const jawn = require('node-jawn');
 const _ = require('underscore');
+let zaq = require('zaq');
 
 let colleqtor = {
   listFiles (dir, ext = null, strip = false) {
@@ -9,7 +10,8 @@ let colleqtor = {
     return !ext ? all : _.filter(all, (item) => jawn.getFileExtension(item) === ext.toLowerCase());
   },
   gatherFileNames (dir, ext = null, strip = false) {
-    return _.map(colleqtor.listFiles(dir, ext, true), jawn.removeFileExtension);
+    zaq.info(dir + ' gathering ' + ext + ' strip is '+(strip?'y':'n'));
+    return _.map(colleqtor.listFiles(dir, ext, strip), jawn.removeFileExtension);
   },
   getFileContent (list, objMode = true, useBasename = true, baseDir = '') {
     let contents = (objMode ? {} : []);
@@ -21,8 +23,16 @@ let colleqtor = {
     });
     return contents;
   },
-  collect (directory, extension, objMode) {
-    return colleqtor.getFileContent(colleqtor.listFiles(directory, extension), objMode);
+  collect (dir, extension, objMode) {
+    return colleqtor.getFileContent(colleqtor.listFiles(dir, extension), objMode);
+  },
+  require (dir) {
+    let keys = colleqtor.gatherFileNames(dir, 'js', true);
+    let output = {};
+    _.each(keys, (key) => {
+      output[key] = require(dir + '/' + key + '.js');
+    });
+    return output;
   }
 };
 

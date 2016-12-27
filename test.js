@@ -12,3 +12,7 @@ zaq.info('LIST FILES: Dir and extension (xml) provided:', colleqtor.listFiles(te
 zaq.info('LIST FILES: Dir and extension (txt) provided, stripping directory:', colleqtor.listFiles(testDir, 'txt', true));
 
 zaq.info('GATHER FILENAMES: Only dir provided:', colleqtor.gatherFileNames(testDir));
+
+let reqd = colleqtor.require(testDir + '/requirable');
+zaq.info('Require\'m', reqd);
+zaq.info('is gamma a thing?', reqd.gamma());

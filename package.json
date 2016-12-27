@@ -1,0 +1,33 @@
+{
+  "name": "colleqtor",
+  "version": "1.0.0",
+  "description": "Sieze the directory.",
+  "main": "colleqtor.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/austinbillings/colleqtor.git"
+  },
+  "keywords": [
+    "list",
+    "directory",
+    "folder",
+    "contents",
+    "load",
+    "files",
+    "by",
+    "path"
+  ],
+  "author": "Austin Billings <austin@austinbillings.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/austinbillings/colleqtor/issues"
+  },
+  "homepage": "https://github.com/austinbillings/colleqtor#readme",
+  "dependencies": {
+    "node-jawn": "^1.2.0",
+    "underscore": "^1.8.3"
+  }
+}

@@ -1,7 +1,8 @@
-const colleqtor = require('./colleqtor.js');
 const zaq = require('zaq');
+const path = require('path');
+const colleqtor = require('./colleqtor.js');
 
-let testDir = './test';
+let testDir = path.join(__dirname, '/test');
 
 zaq.info('LIST FILES: Only dir provided:', colleqtor.listFiles(testDir));
 
@@ -15,4 +16,4 @@ zaq.info('GATHER FILENAMES: Only dir provided:', colleqtor.gatherFileNames(testD
 
 let reqd = colleqtor.require(testDir + '/requirable');
 zaq.info('Require\'m', reqd);
-zaq.info('is gamma a thing?', reqd.gamma());
+zaq.info('is gamma a thing?', reqd.gamma);

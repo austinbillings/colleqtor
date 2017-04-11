@@ -1,10 +1,10 @@
 {
   "name": "colleqtor",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Seize the directory.",
   "main": "colleqtor.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "uglifyjs colleqtor.js -o colleqtor.min.js"
   },
   "repository": {
     "type": "git",
@@ -28,9 +28,10 @@
   "homepage": "https://github.com/austinbillings/colleqtor#readme",
   "dependencies": {
     "node-jawn": "^1.2.1",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "zaq": "^1.1.4"
   },
   "devDependencies": {
-    "zaq": "^1.0.3"
+    "uglify-js": "git+https://github.com/mishoo/UglifyJS2.git#harmony"
   }
 }

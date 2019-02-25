@@ -4,8 +4,13 @@ const zaq = require('zaq').as('colleqtor@' + version);
 const path = require('path');
 const jawn = require('node-jawn');
 
+const isArray = a => Array.isArray(a);
+const isObject = o => typeof o === 'object';
+const isString = s => typeof s === 'string';
+const isFunction = f => typeof f === 'function';
+
 function checkOptions (methodName = '?', options) {
-  if (typeof options !== 'object') {
+  if (!isObject(options)) {
     throw new TypeError(`
         API changed in V2.0:
         colleqtor.${methodName} now requires an options *object* instead of individual string/bool arguments:
@@ -14,13 +19,40 @@ function checkOptions (methodName = '?', options) {
   }
 }
 
+const extensionFilter = ext => item => {
+  if (isString(ext) && ext.length) {
+    const itemExt = path.extname(item).toLowerCase();
+
+    return isString(itemExt)
+      && itemExt.length > 1
+      && (itemExt === ext.toLowerCase()
+      || itemExt.substring(1) === ext.toLowerCase());
+  } else if (isArray(ext)) {
+    return ext.some(subExtension => extensionFilter(subExtension)(item));
+  }
+
+  return true;
+}
+
+const exclusionFilter = predicate => item => {
+  if (isFunction(predicate))
+      return !predicate(item);
+  if (isString(predicate))
+      return item.indexOf(predicate) === -1;
+  if (isArray(predicate))
+      return predicate.every(subPredicate => excludeFilter(subPredicate)(item));
+
+  return true;
+};
+
 function listFiles (dir, options = {}) {
   checkOptions('listFiles', options);
 
   const {
     extension = null,
     stripDirPath = null,
-    recursive = null
+    recursive = null,
+    exclude = null
   } = options;
 
   const cleanName = p => stripDirPath ? p : path.join(dir, p);
@@ -39,14 +71,13 @@ function listFiles (dir, options = {}) {
     else return output;
   }, []);
 
-  const resultFilter = item => !extension
-    || (jawn.getFileExtension(item) === extension.toLowerCase());
-
-  return fileNames.filter(resultFilter);
+  return fileNames
+    .filter(extensionFilter(extension))
+    .filter(exclusionFilter(exclude));
 };
 
 function gatherFileNames (dir, options = {}) {
-  checkOptions(options);
+  checkOptions('gatherFileNames', options);
 
   const { extension = null, stripDirPath = false } = options;
 

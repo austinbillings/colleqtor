@@ -1,6 +1,6 @@
 const zaq = require('zaq');
 const path = require('path');
-const colleqtor = require('./colleqtor.js');
+const colleqtor = require('./index');
 
 let testDir = path.join(__dirname, '/test');
 

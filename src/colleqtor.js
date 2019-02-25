@@ -1,19 +1,17 @@
-const { version } = require('./package.json');
+const { version } = require('../package.json');
 const fs = require('fs');
-const zaq = require('zaq').as('colleqtor@' + version);
 const path = require('path');
+const zaq = require('zaq').as('colleqtor@' + version);
 
-const isArray = a => Array.isArray(a);
-const isObject = o => typeof o === 'object';
-const isString = s => typeof s === 'string';
-const isFunction = f => typeof f === 'function';
-
-function removeFileExtension (filePath) {
-    if (!isString(filePath)) return new TypeError('filePath is not a string.');
-
-    var extname = path.extname(filePath);
-    return extname && extname.length ? filePath.substring(0, filePath.length - extname.length) : filePath;
-}
+const {
+  isString,
+  isArray,
+  isFunction,
+  isObject,
+  exclusionFilter,
+  extensionFilter,
+  removeFileExtension
+} = require('./utils');
 
 function checkOptions (methodName = '?', options) {
   if (!isObject(options)) {
@@ -24,32 +22,6 @@ function checkOptions (methodName = '?', options) {
     `);
   }
 }
-
-const extensionFilter = ext => item => {
-  if (isString(ext) && ext.length) {
-    const itemExt = path.extname(item).toLowerCase();
-
-    return isString(itemExt)
-      && itemExt.length > 1
-      && (itemExt === ext.toLowerCase()
-      || itemExt.substring(1) === ext.toLowerCase());
-  } else if (isArray(ext)) {
-    return ext.some(subExtension => extensionFilter(subExtension)(item));
-  }
-
-  return true;
-}
-
-const exclusionFilter = predicate => item => {
-  if (isFunction(predicate))
-      return !predicate(item);
-  if (isString(predicate))
-      return item.indexOf(predicate) === -1;
-  if (isArray(predicate))
-      return predicate.every(subPredicate => excludeFilter(subPredicate)(item));
-
-  return true;
-};
 
 function listFiles (dir, options = {}) {
   checkOptions('listFiles', options);
@@ -127,15 +99,15 @@ function requireAll (dir, extension = 'js') {
 
 module.exports = {
     version,
+    collect,
     listFiles,
+    requireAll,
     gatherFileNames,
     getFileContents,
     getFileContent: (...args) => {
       zaq.warn('colleqtor.getFileContent is deprecated and will be removed. Please use .getFileContents (plural) instead.');
       return getFileContents(...args);
     },
-    collect,
-    requireAll,
     require: (...args) => {
       zaq.warn('colleqtor.require() is deprecated and will be removed in future versions of colleqtor. Please use .requireAll() instead.')
       return requireAll(...args);

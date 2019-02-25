@@ -2,7 +2,7 @@
   "name": "colleqtor",
   "version": "2.1.1",
   "description": "Seize the directory.",
-  "main": "colleqtor.js",
+  "main": "index.js",
   "scripts": {},
   "repository": {
     "type": "git",

@@ -1,10 +1,9 @@
 {
   "name": "colleqtor",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Seize the directory.",
   "main": "colleqtor.js",
-  "scripts": {
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/austinbillings/colleqtor.git"

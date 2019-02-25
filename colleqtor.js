@@ -85,7 +85,7 @@ function gatherFileNames (dir, options = {}) {
     .map(p => jawn.removeFileExtension(p));
 };
 
-function getFileContents (filePathList, objMode = true, stripFileExtensions = true, baseDir = null) {
+function getFileContents (filePathList, objMode = true, stripFileExtensions = false, baseDir = null) {
   return filePathList.reduce((output, filePath) => {
     const fullPath = path.resolve(baseDir || '', filePath);
     const shortPath = path.relative('.', fullPath);
@@ -98,8 +98,8 @@ function getFileContents (filePathList, objMode = true, stripFileExtensions = tr
   }, objMode ? {} : []);
 };
 
-function collect (dir, extension, objMode) {
-  return getFileContent(listFiles(dir, { extension: extension }), objMode);
+function collect (dir, options, objMode) {
+  return getFileContent(listFiles(dir, options), objMode);
 };
 
 function requireAll (dir, extension = 'js') {

@@ -25,7 +25,6 @@
   },
   "homepage": "https://github.com/austinbillings/colleqtor#readme",
   "dependencies": {
-    "node-jawn": "^1.2.1",
     "zaq": "^2.1.3"
   }
 }

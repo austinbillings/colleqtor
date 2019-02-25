@@ -2,12 +2,18 @@ const { version } = require('./package.json');
 const fs = require('fs');
 const zaq = require('zaq').as('colleqtor@' + version);
 const path = require('path');
-const jawn = require('node-jawn');
 
 const isArray = a => Array.isArray(a);
 const isObject = o => typeof o === 'object';
 const isString = s => typeof s === 'string';
 const isFunction = f => typeof f === 'function';
+
+function removeFileExtension (filePath) {
+    if (!isString(filePath)) return new TypeError('filePath is not a string.');
+
+    var extname = path.extname(filePath);
+    return extname && extname.length ? filePath.substring(0, filePath.length - extname.length) : filePath;
+}
 
 function checkOptions (methodName = '?', options) {
   if (!isObject(options)) {
@@ -82,7 +88,7 @@ function gatherFileNames (dir, options = {}) {
   const { extension = null, stripDirPath = false } = options;
 
   return listFiles(dir, options)
-    .map(p => jawn.removeFileExtension(p));
+    .map(p => removeFileExtension(p));
 };
 
 function getFileContents (filePathList, objMode = true, stripFileExtensions = false, baseDir = null) {
@@ -90,7 +96,7 @@ function getFileContents (filePathList, objMode = true, stripFileExtensions = fa
     const fullPath = path.resolve(baseDir || '', filePath);
     const shortPath = path.relative('.', fullPath);
     const content = fs.readFileSync(fullPath, 'utf-8');
-    const pathKey = stripFileExtensions ? jawn.removeFileExtension(shortPath) : shortPath;
+    const pathKey = stripFileExtensions ? removeFileExtension(shortPath) : shortPath;
 
     return objMode
       ? { ...output, [pathKey]: content }

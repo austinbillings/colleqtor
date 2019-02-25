@@ -46,13 +46,15 @@ function listFiles (dir, options = {}) {
 };
 
 function gatherFileNames (dir, options = {}) {
+  checkOptions(options);
+
   const { extension = null, stripDirPath = false } = options;
 
   return listFiles(dir, options)
     .map(p => jawn.removeFileExtension(p));
 };
 
-function getFileContent (filePathList, objMode = true, stripFileExtensions = true, baseDir = null) {
+function getFileContents (filePathList, objMode = true, stripFileExtensions = true, baseDir = null) {
   return filePathList.reduce((output, filePath) => {
     const fullPath = path.resolve(baseDir || '', filePath);
     const shortPath = path.relative('.', fullPath);
@@ -90,11 +92,15 @@ module.exports = {
     version,
     listFiles,
     gatherFileNames,
-    getFileContent,
+    getFileContents,
+    getFileContent: (...args) => {
+      zaq.warn('colleqtor.getFileContent is deprecated and will be removed. Please use .getFileContents (plural) instead.');
+      return getFileContents(...args);
+    },
     collect,
     requireAll,
     require: (...args) => {
-      zaq.warn('colleqtor.require() is deprecated and will be removed in future versions of colleqtor. Please use colleqtor.requireAll() instead.')
+      zaq.warn('colleqtor.require() is deprecated and will be removed in future versions of colleqtor. Please use .requireAll() instead.')
       return requireAll(...args);
     }
 };

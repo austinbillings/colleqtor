@@ -4,7 +4,6 @@
   "description": "Seize the directory.",
   "main": "colleqtor.js",
   "scripts": {
-    "build": "uglifyjs colleqtor.js -o colleqtor.min.js"
   },
   "repository": {
     "type": "git",

@@ -1,48 +1,100 @@
-// deps ========================================================================
+const { version } = require('./package.json');
 const fs = require('fs');
-const zaq = require('zaq');
+const zaq = require('zaq').as('colleqtor@' + version);
 const path = require('path');
-const _ = require('underscore');
 const jawn = require('node-jawn');
 
-let Colleqtor = { version: '1.1.0' };
+function checkOptions (methodName = '?', options) {
+  if (typeof options !== 'object') {
+    throw new TypeError(`
+        API changed in V2.0:
+        colleqtor.${methodName} now requires an options *object* instead of individual string/bool arguments:
+        { extension: string?, stripDirPath: bool?, recursive: bool? }
+    `);
+  }
+}
 
-Colleqtor.listFiles = (dir, ext = null, strip = false) => {
-  let all = _.map(fs.readdirSync(dir), (item) => (strip ? '' : dir + '/') + item);
-  return !ext ? all : _.filter(all, (item) => jawn.getFileExtension(item) === ext.toLowerCase());
+function listFiles (dir, options = {}) {
+  checkOptions('listFiles', options);
+
+  const {
+    extension = null,
+    stripDirPath = null,
+    recursive = null
+  } = options;
+
+  const cleanName = p => stripDirPath ? p : path.join(dir, p);
+  const dirContents = fs.readdirSync(dir, { withFileTypes: true });
+  const fileNames = dirContents.reduce(function (output, dirItem) {
+    if (dirItem.isFile())
+      return [
+        ...output,
+        cleanName(dirItem.name)
+      ];
+    else if (dirItem.isDirectory() && recursive)
+      return [
+        ...output,
+        ...listFiles(path.join(dir, dirItem.name), { extension, stripDirPath, recursive })
+      ];
+    else return output;
+  }, []);
+
+  const resultFilter = item => !extension
+    || (jawn.getFileExtension(item) === extension.toLowerCase());
+
+  return fileNames.filter(resultFilter);
 };
 
-Colleqtor.gatherFileNames = (dir, ext = null, strip = false) => {
-  return _.map(Colleqtor.listFiles(dir, ext, strip), jawn.removeFileExtension);
+function gatherFileNames (dir, options = {}) {
+  const { extension = null, stripDirPath = false } = options;
+
+  return listFiles(dir, options)
+    .map(p => jawn.removeFileExtension(p));
 };
 
-Colleqtor.getFileContent = (list, objMode = true, useBasename = true, baseDir = '') => {
-  let contents = (objMode ? {} : []);
-  _.each(list, (path) => {
-    let content = fs.readFileSync(baseDir + path, 'utf-8');
-    let basename = useBasename ? jawn.removeFileExtension(jawn.filenameFromPath(path)) : path;
-    if (objMode) contents[basename] = content;
-    else contents.push(content);
-  });
-  return contents;
+function getFileContent (filePathList, objMode = true, stripFileExtensions = true, baseDir = null) {
+  return filePathList.reduce((output, filePath) => {
+    const fullPath = path.resolve(baseDir || '', filePath);
+    const shortPath = path.relative('.', fullPath);
+    const content = fs.readFileSync(fullPath, 'utf-8');
+    const pathKey = stripFileExtensions ? jawn.removeFileExtension(shortPath) : shortPath;
+
+    return objMode
+      ? { ...output, [pathKey]: content }
+      : [ ...output, content ];
+  }, objMode ? {} : []);
 };
 
-Colleqtor.collect = (dir, extension, objMode) => {
-  return Colleqtor.getFileContent(Colleqtor.listFiles(dir, extension), objMode);
+function collect (dir, extension, objMode) {
+  return getFileContent(listFiles(dir, { extension: extension }), objMode);
 };
 
-Colleqtor.require = (dir, ext = 'js') => {
-  let keys = Colleqtor.gatherFileNames(dir, ext, true);
-  let output = {};
-  _.each(keys, (key) => {
-    let uri = path.join(dir, key + '.' + ext);
+function requireAll (dir, extension = 'js') {
+  const fileNames = gatherFileNames(dir, { extension, stripDirPath: true });
+
+  return fileNames.reduce((output, fileName) => {
+    const uri = path.join(dir, `${fileName}.${extension}`);
+
     try {
-      output[key] = require(uri);
+      output[fileName] = require(uri);
     } catch (e) {
-      zaq.err(`Error requiring [${ext}] file: ${uri}`, e);
+      zaq.err(e);
+      throw Error(`colleqtor: couldn\'t require [${extension}] file: ${uri}`);
     }
-  });
-  return output;
+
+    return output;
+  }, {});
 };
 
-module.exports = Colleqtor;
+module.exports = {
+    version,
+    listFiles,
+    gatherFileNames,
+    getFileContent,
+    collect,
+    requireAll,
+    require: (...args) => {
+      zaq.warn('colleqtor.require() is deprecated and will be removed in future versions of colleqtor. Please use colleqtor.requireAll() instead.')
+      return requireAll(...args);
+    }
+};

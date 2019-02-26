@@ -23,35 +23,78 @@ function checkOptions (methodName = '?', options) {
   }
 }
 
+function dirEntriesToFileNames (dirPath, dirEntries, options) {
+  const { stripDirPath, recursive, useAsync } = options;
+  const cleanName = p => stripDirPath ? p : path.join(dirPath, p);
+  const entries = dirEntries.filter(e => e.isFile() || e.isDirectory());
+
+  return !useAsync
+    ? entries.reduce(function (output, dirEntry) {
+        if (dirEntry.isFile())
+          return [ ...output, cleanName(dirEntry.name) ];
+        else if (dirEntry.isDirectory() && recursive) {
+          const subDirPath = path.join(dirPath, dirEntry.name);
+          return [ ...output, ...listFiles(subDirPath, options) ];
+        } else return output;
+      }, [])
+    : new Promise((resolve, reject) => {
+        const output = [];
+        let finishedCount = 0;
+
+        try {
+          entries.forEach((dirEntry, index) => {
+            const finish = () => ++finishedCount === entries.length ? resolve(output) : null;
+
+            if (dirEntry.isFile()) {
+              output.push(cleanName(dirEntry.name));
+              finish();
+            } else if (dirEntry.isDirectory() && recursive) {
+              const subDirPath = path.join(dirPath, dirEntry.name);
+
+              listFiles(subDirPath, options)
+                .then(list => {
+                  list.forEach(item => output.push(item));
+
+                  finish();
+                }, reject);
+            } else {
+              finish();
+            }
+          });
+        } catch (e) {
+          reject(e);
+        }
+      });
+}
+
 function listFiles (dir, options = {}) {
   checkOptions('listFiles', options);
 
-  const {
-    extension = null,
-    stripDirPath = null,
-    recursive = null,
-    exclude = null
-  } = options;
+  const { useAsync, extension, exclude } = options;
 
-  const cleanName = p => stripDirPath ? p : path.join(dir, p);
-  const dirContents = fs.readdirSync(dir, { withFileTypes: true });
-  const fileNames = dirContents.reduce(function (output, dirItem) {
-    if (dirItem.isFile())
-      return [
-        ...output,
-        cleanName(dirItem.name)
-      ];
-    else if (dirItem.isDirectory() && recursive)
-      return [
-        ...output,
-        ...listFiles(path.join(dir, dirItem.name), { extension, stripDirPath, recursive })
-      ];
-    else return output;
-  }, []);
+  if (!useAsync) {
+    const files = fs.readdirSync(dir, { withFileTypes: true });
+    const fileNames = dirEntriesToFileNames(dir, files, options);
 
-  return fileNames
-    .filter(extensionFilter(extension))
-    .filter(exclusionFilter(exclude));
+    return fileNames
+      .filter(extensionFilter(extension))
+      .filter(exclusionFilter(exclude));
+  }
+
+  return new Promise((resolve, reject) => {
+    fs.readdir(dir, { withFileTypes: true }, (err, files) => {
+      if (err) return reject(err);
+
+      dirEntriesToFileNames(dir, files, options)
+        .then(fileNames => {
+          const filteredFilenames = fileNames
+            .filter(extensionFilter(extension))
+            .filter(exclusionFilter(exclude));
+
+          resolve(filteredFilenames);
+        }, reject);
+    });
+  });
 };
 
 function gatherFileNames (dir, options = {}) {

@@ -12,16 +12,14 @@ function removeFileExtension (filePath) {
     return extname && extname.length ? filePath.substring(0, filePath.length - extname.length) : filePath;
 }
 
-const extensionFilter = ext => item => {
+const extensionFilter = (ext, keepDirectories) => item => {
   if (isString(ext) && ext.length) {
     const itemExt = path.extname(item).toLowerCase();
 
-    return isString(itemExt)
-      && itemExt.length > 1
-      && (itemExt === ext.toLowerCase()
-      || itemExt.substring(1) === ext.toLowerCase());
+    return (keepDirectories && item[item.length - 1] === path.sep)
+      || (isString(itemExt) && itemExt.length > 1 && (itemExt === ext.toLowerCase() || itemExt.substring(1) === ext.toLowerCase()));
   } else if (isArray(ext)) {
-    return ext.some(subExtension => extensionFilter(subExtension)(item));
+    return ext.some(subExtension => extensionFilter(subExtension, keepDirectories)(item));
   }
 
   return true;

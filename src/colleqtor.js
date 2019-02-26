@@ -23,19 +23,29 @@ function checkOptions (methodName = '?', options) {
   }
 }
 
-function dirEntriesToFileNames (dirPath, dirEntries, options) {
-  const { stripDirPath, recursive, useAsync } = options;
-  const cleanName = p => stripDirPath ? p : path.join(dirPath, p);
+function dirEntriesToFileNames (dirPath, dirEntries, options = {}) {
+  const cleanName = (p, isDir) => (options.stripDirPath
+    ? (p === dirPath ? '' : p)
+    : (p === dirPath ? p : path.join(dirPath, p))) + (isDir ? path.sep : '');
   const entries = dirEntries.filter(e => e.isFile() || e.isDirectory());
 
-  return !useAsync
+  return !options.useAsync
     ? entries.reduce(function (output, dirEntry) {
         if (dirEntry.isFile())
           return [ ...output, cleanName(dirEntry.name) ];
-        else if (dirEntry.isDirectory() && recursive) {
+
+        if (!options.recursive) {
+          return options.directories
+            ? [ ...output, cleanName(dirEntry.name, true) ]
+            : output;
+        } else {
           const subDirPath = path.join(dirPath, dirEntry.name);
-          return [ ...output, ...listFiles(subDirPath, options) ];
-        } else return output;
+          const subDirContents = listFiles(subDirPath, options).map(file => options.stripDirPath ? path.join(dirEntry.name, file) : null);
+
+          return options.directories
+            ? [ ...output, cleanName(dirEntry.name, true), ...subDirContents ]
+            : [ ...output, ...subDirContents ];
+        }
       }, [])
     : new Promise((resolve, reject) => {
         const output = [];
@@ -47,8 +57,14 @@ function dirEntriesToFileNames (dirPath, dirEntries, options) {
 
             if (dirEntry.isFile()) {
               output.push(cleanName(dirEntry.name));
-              finish();
-            } else if (dirEntry.isDirectory() && recursive) {
+              return finish();
+            }
+
+            if (options.directories) {
+              output.push(cleanName(dirEntry.name, true));
+            }
+
+            if (options.recursive) {
               const subDirPath = path.join(dirPath, dirEntry.name);
 
               listFiles(subDirPath, options)
@@ -70,15 +86,13 @@ function dirEntriesToFileNames (dirPath, dirEntries, options) {
 function listFiles (dir, options = {}) {
   checkOptions('listFiles', options);
 
-  const { useAsync, extension, exclude } = options;
-
-  if (!useAsync) {
+  if (!options.useAsync) {
     const files = fs.readdirSync(dir, { withFileTypes: true });
     const fileNames = dirEntriesToFileNames(dir, files, options);
 
     return fileNames
-      .filter(extensionFilter(extension))
-      .filter(exclusionFilter(exclude));
+      .filter(extensionFilter(options.extension, options.directories))
+      .filter(exclusionFilter(options.exclude));
   }
 
   return new Promise((resolve, reject) => {
@@ -87,11 +101,10 @@ function listFiles (dir, options = {}) {
 
       dirEntriesToFileNames(dir, files, options)
         .then(fileNames => {
-          const filteredFilenames = fileNames
-            .filter(extensionFilter(extension))
-            .filter(exclusionFilter(exclude));
-
-          resolve(filteredFilenames);
+          const filteredFileNames = fileNames
+            .filter(extensionFilter(options.extension, options.directories))
+            .filter(exclusionFilter(options.exclude));
+          resolve(filteredFileNames);
         }, reject);
     });
   });
@@ -99,8 +112,6 @@ function listFiles (dir, options = {}) {
 
 function gatherFileNames (dir, options = {}) {
   checkOptions('gatherFileNames', options);
-
-  const { extension = null, stripDirPath = false } = options;
 
   return listFiles(dir, options)
     .map(p => removeFileExtension(p));

@@ -51,6 +51,10 @@ function dirEntriesToFileNames (dirPath, dirEntries, options = {}) {
         const output = [];
         let finishedCount = 0;
 
+        if (!entries.length) {
+          return resolve(output);
+        }
+
         try {
           entries.forEach((dirEntry, index) => {
             const finish = () => ++finishedCount === entries.length ? resolve(output) : null;
@@ -77,8 +81,6 @@ function dirEntriesToFileNames (dirPath, dirEntries, options = {}) {
               finish();
             }
           });
-
-          finish();
         } catch (e) {
           reject(e);
         }

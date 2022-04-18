@@ -77,6 +77,8 @@ function dirEntriesToFileNames (dirPath, dirEntries, options = {}) {
               finish();
             }
           });
+
+          finish();
         } catch (e) {
           reject(e);
         }

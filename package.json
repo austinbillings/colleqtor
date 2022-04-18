@@ -1,6 +1,6 @@
 {
   "name": "colleqtor",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "Seize the directory.",
   "main": "index.js",
   "scripts": {

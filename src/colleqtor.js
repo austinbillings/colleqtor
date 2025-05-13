@@ -1,7 +1,6 @@
 const { version } = require('../package.json');
 const fs = require('fs');
 const path = require('path');
-const zaq = require('zaq').as('colleqtor@' + version);
 
 const {
   isString,
@@ -147,7 +146,7 @@ function requireAll (dir, extension = 'js') {
     try {
       output[fileName] = require(uri);
     } catch (e) {
-      zaq.err(e);
+      console.error(e);
       throw Error(`colleqtor: couldn\'t require [${extension}] file: ${uri}`);
     }
 
@@ -163,11 +162,11 @@ module.exports = {
     gatherFileNames,
     getFileContents,
     getFileContent: (...args) => {
-      zaq.warn('colleqtor.getFileContent is deprecated and will be removed. Please use .getFileContents (plural) instead.');
+      console.warn('colleqtor.getFileContent is deprecated and will be removed. Please use .getFileContents (plural) instead.');
       return getFileContents(...args);
     },
     require: (...args) => {
-      zaq.warn('colleqtor.require() is deprecated and will be removed in future versions of colleqtor. Please use .requireAll() instead.')
+      console.warn('colleqtor.require() is deprecated and will be removed in future versions of colleqtor. Please use .requireAll() instead.')
       return requireAll(...args);
     }
 };

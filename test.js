@@ -1,10 +1,9 @@
-const zaq = require('zaq');
 const path = require('path');
 const chalk = require('chalk');
 const colleqtor = require('./index');
 
-const runTest = (code) => zaq.ok(chalk.green(code), eval(code));
-const runAsyncTest = (code) => eval(code).then(results => zaq.ok(chalk.green(code), results));
+const runTest = (code) => console.log(chalk.green(code), eval(code));
+const runAsyncTest = (code) => eval(code).then(results => console.log(chalk.green(code), results));
 
 const testDir = path.join(__dirname, '/test');
 
